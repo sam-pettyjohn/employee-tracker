@@ -5,7 +5,7 @@
 
 A command-line application to manage a company's employee database, using Node.js, Inquirer, and MySQL.
 
-Please use this [video](TBC) for a walkthough tutorial of the README generator.
+Please use this [video](TBC) for a walkthough tutorial of this project.
 
 ## Table of Contents
 
