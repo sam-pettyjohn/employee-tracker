@@ -159,7 +159,35 @@ class terminal {
                 case "view all departments":
                     this.viewDepartments();
                     break;
-                // insert remaining cases
+                case "view all roles":
+                    this.viewRoles();
+                    break;
+                case "view all employees":
+                    this.viewEmployees();
+                    break;
+                case "add a department":
+                    inquirer.prompt(addDepartment).then(response => {
+                        const addDepartment = response.addDepartment;
+                        this.addADepartment(addDepartment);
+                    });
+                    break;
+                case "add a role":
+                    const addRoleValue = `SELECT * FROM department`;
+                    db.query(addRoleValue, (err, res) => {
+                        if (err) throw err;
+                        res.forEach(department => {
+                            let newValue = {
+                                name: department.name,
+                                value: department.id
+                            }
+                            departmentArray.push(newValue);
+                        })
+                    });
+                    inquirer.prompt(addRole).then(response => {
+                        this.addARole(response);
+                    });
+                    break;
+                // case "add an employee":
             }
         });
     }
@@ -170,6 +198,57 @@ class terminal {
         return db.query(SQL, (err, rows) => {
             if (err) throw err;
             console.table(rows);
+            this.terminalMenu();
+        });
+    }
+    viewRoles() {
+        const SQL = `
+        SELECT role.*, department.name
+        AS department_name
+        FROM role
+        LEFT JOIN department
+        ON role.department_id = department.id
+        `;
+        return db.query(SQL, (err, rows) => {
+            if (err) throw err;
+            console.table(rows);
+            this.terminalMenu();
+        });
+    }
+    viewEmployees() {
+        const SQL = `
+        SELECT * FROM employee
+        LEFT JOIN role
+        ON employee.role_id = role.id
+        `;
+        return db.query(SQL, (err, rows) => {
+            if (err) throw err;
+            console.table(rows);
+            this.terminalMenu();
+        });
+    }
+    addADepartment(department_name) {
+        const SQL = `
+            INSERT INTO department (name)
+            VALUES
+                ("${department_name}");
+        `;
+        return db.query(SQL, (err, rows) => {
+            if (err) throw err;
+            console.table(rows);
+            this.terminalMenu();
+        });
+    }
+    addARole(dbRoleValue) {
+        const {title, salary, department} = dbRoleValue;
+        const SQL = `
+            INSERT INTO role (title, salary, department_id)
+            VALUES
+                ("${title}", "${salary}", "${department}");
+        `;
+        return db.query(SQL, (err, rows) => {
+            if (err) throw err;
+            console.log("Role has been added to the Employee Tracker.");
             this.terminalMenu();
         });
     }
