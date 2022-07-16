@@ -4,11 +4,13 @@ const db = require("../../config/connection");
 require("console.table");
 
 // Arrays
-departmentArray = [];
-roleArray = [];
+const departmentArray = [];
+const roleArray = [];
+const employeeArray = [];
 
-employeeNameUpdateArray = [];
-employeeRoleUpdateArray = [];
+const employeeNameUpdateArray = [];
+const employeeRoleUpdateArray = [];
+
 
 
 // Prompts
@@ -116,12 +118,10 @@ const addEmployee = [
     // Role Selection
     {
         type: "list",
-        name: "roleId",
+        name: "roleName",
         choices: roleArray,
         message: "Please select the employee\'s role:"
-    },
-
-    // Manager Selection (EC) 
+    }
 ];
 
 const updateRole = [
@@ -156,6 +156,7 @@ class terminal {
         .prompt(displayTerminal)
         .then(terminalSelect => {
             switch (terminalSelect.terminalMenu) {
+                // VIEW TABLES
                 case "view all departments":
                     this.viewDepartments();
                     break;
@@ -165,6 +166,8 @@ class terminal {
                 case "view all employees":
                     this.viewEmployees();
                     break;
+
+                // ADD TO TABLES
                 case "add a department":
                     inquirer.prompt(addDepartment).then(response => {
                         const addDepartment = response.addDepartment;
@@ -178,7 +181,6 @@ class terminal {
                         res.forEach(department => {
                             let newValue = {
                                 name: department.name,
-                                value: department.id
                             }
                             departmentArray.push(newValue);
                         })
@@ -187,14 +189,40 @@ class terminal {
                         this.addARole(response);
                     });
                     break;
-                // case "add an employee":
+                case "add an employee":
+                    const addAnEmployee = `SELECT * FROM employee`;
+                    const addARole = `SELECT * FROM department`;
+                    // db.query(addAnEmployee, (err, res) => {
+                    //     if (err) throw err;
+                    //     res.forEach(employee => {
+                    //         let newValue = {
+                    //             name: employee.manager_name,
+                    //         }
+                    //         employeeArray.push(newValue)
+                    //     })
+                    // });
+                    db.query(addARole, (err, res) => {
+                        if (err) throw err;
+                        res.forEach(department => {
+                            let newValue = {
+                                name: department.name,
+                            }
+                            roleArray.push(newValue);
+                        })
+                    });
+                    inquirer.prompt(addEmployee).then(response => {
+                        this.addAnEmployee(response);
+                    });
+                    break;
+                // case "update an employee role":
             }
         });
     }
 
     viewDepartments() {
-        const SQL = `SELECT * FROM department`;
-
+        const SQL = `
+        SELECT * FROM department
+        `;
         return db.query(SQL, (err, rows) => {
             if (err) throw err;
             console.table(rows);
@@ -207,7 +235,7 @@ class terminal {
         AS department_name
         FROM role
         LEFT JOIN department
-        ON role.department_id = department.id
+        ON role.department_name = department.name
         `;
         return db.query(SQL, (err, rows) => {
             if (err) throw err;
@@ -218,8 +246,6 @@ class terminal {
     viewEmployees() {
         const SQL = `
         SELECT * FROM employee
-        LEFT JOIN role
-        ON employee.role_id = role.id
         `;
         return db.query(SQL, (err, rows) => {
             if (err) throw err;
@@ -242,13 +268,26 @@ class terminal {
     addARole(dbRoleValue) {
         const {title, salary, department} = dbRoleValue;
         const SQL = `
-            INSERT INTO role (title, salary, department_id)
+            INSERT INTO role (title, salary, department_name)
             VALUES
                 ("${title}", "${salary}", "${department}");
         `;
         return db.query(SQL, (err, rows) => {
             if (err) throw err;
             console.log("Role has been added to the Employee Tracker.");
+            this.terminalMenu();
+        });
+    }
+    addAnEmployee(dbEmployeeValue) {
+        const {firstName, lastName, roleName} = dbEmployeeValue;
+        const SQL = `
+            INSERT INTO employee (first_name, last_name, role_name)
+            VALUES
+                ("${firstName}", "${lastName}", "${roleName}");
+        `;
+        return db.query(SQL, (err) => {
+            if (err) throw err;
+            console.log("Employee has been added to the Employee Tracker.");
             this.terminalMenu();
         });
     }
