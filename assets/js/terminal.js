@@ -6,12 +6,9 @@ require("console.table");
 // Arrays
 const departmentArray = [];
 const roleArray = [];
-const employeeArray = [];
 
 const employeeNameUpdateArray = [];
 const employeeRoleUpdateArray = [];
-
-
 
 // Prompts
 const displayTerminal = {
@@ -190,22 +187,12 @@ class terminal {
                     });
                     break;
                 case "add an employee":
-                    const addAnEmployee = `SELECT * FROM employee`;
-                    const addARole = `SELECT * FROM department`;
-                    // db.query(addAnEmployee, (err, res) => {
-                    //     if (err) throw err;
-                    //     res.forEach(employee => {
-                    //         let newValue = {
-                    //             name: employee.manager_name,
-                    //         }
-                    //         employeeArray.push(newValue)
-                    //     })
-                    // });
+                    const addARole = `SELECT * FROM role`;
                     db.query(addARole, (err, res) => {
                         if (err) throw err;
-                        res.forEach(department => {
+                        res.forEach(role => {
                             let newValue = {
-                                name: department.name,
+                                name: role.title,
                             }
                             roleArray.push(newValue);
                         })
@@ -214,7 +201,34 @@ class terminal {
                         this.addAnEmployee(response);
                     });
                     break;
-                // case "update an employee role":
+                case "update an employee role":
+                    const updateEmp = `SELECT * FROM employee`;
+                    const updateR = `SELECT * FROM role`;
+
+                    db.query(updateEmp, (err, res) => {
+                        if (err) throw err;
+                        res.forEach(employee => {
+                            let newValue = {
+                                name: employee.id,
+                            }
+                            employeeNameUpdateArray.push(newValue);
+                        })
+                    });
+
+                    db.query(updateR, (err, res) => {
+                        if (err) throw err;
+                        res.forEach(role => {
+                            let newValue = {
+                                name: role.id,
+                            }
+                            employeeRoleUpdateArray.push(newValue);
+                        })
+                    });
+
+                    inquirer.prompt(updateRole).then(response => {
+                        this.updatedEmployee(response);
+                    });
+                    break;
             }
         });
     }
@@ -272,7 +286,7 @@ class terminal {
             VALUES
                 ("${title}", "${salary}", "${department}");
         `;
-        return db.query(SQL, (err, rows) => {
+        return db.query(SQL, (err) => {
             if (err) throw err;
             console.log("Role has been added to the Employee Tracker.");
             this.terminalMenu();
@@ -285,6 +299,21 @@ class terminal {
             VALUES
                 ("${firstName}", "${lastName}", "${roleName}");
         `;
+        return db.query(SQL, (err) => {
+            if (err) throw err;
+            console.log("Employee has been added to the Employee Tracker.");
+            this.terminalMenu();
+        });
+    }
+
+    updatedEmployee(dbUpdateEmployee) {
+        const {updateRole, employeeID} = dbUpdateEmployee
+        const SQL = `
+            UPDATE employee
+            SET role_name = "${updateRole}"
+            WHERE employeeID = "${employeeID}";
+        `;
+
         return db.query(SQL, (err) => {
             if (err) throw err;
             console.log("Employee has been added to the Employee Tracker.");
